@@ -267,7 +267,7 @@ if __name__ == "__main__":
     parser.add_argument("--savetrees", action="store_true", help="Set to visually check generated CCG trees", required=False)
     args = parser.parse_args()
     input_path = args.input
-    output_path = args.output if args.output else "cdlt.tsv"
+    output_path = args.output if args.output else "clt.tsv"
     is_headfinal = args.headfinal
     save_trees = args.savetrees
     main(input_path, output_path, is_headfinal, save_trees)
