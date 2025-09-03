@@ -29,6 +29,7 @@ class UDToken:
     head: str
     deptype: str
     preds: dict[str, int]
+    misc: str
 
 @dataclass
 class Sent:
@@ -52,7 +53,7 @@ def read_ud(path: str) -> list[Sent]:
                 continue
             cols = line.split("\t")
             sent.tokens.append(UDToken(str(cols[0]), cols[1], cols[3], str(cols[6]), cols[7],
-                                        {"dlt_integ_nv":0, "dlt_integ_nvjr":0, "dlt_integ_char":0, "dlt_stor":0, "dlt_count":0}))
+                                        {"dlt_integ_nv":0, "dlt_integ_nvjr":0, "dlt_integ_char":0, "dlt_stor":0, "dlt_count":0}, cols[9]))
         sents.append(sent)
     return sents
 
@@ -145,6 +146,7 @@ class Tree:
     word: str | None = None
     pos: str | None = None
     preds: dict[str, int] | None = None
+    misc: str | None = None
 
 # returns true if the head-dependency relation has to be reversed 
 # this applies to modifiers and functional categories
@@ -161,7 +163,7 @@ def ud2tree(sent: Sent, is_headfinal: bool, head_id: int = None) -> Tree:
     else:
         head = next((token for token in sent.tokens if token.token_id == head_id), sent.tokens[0])
     tree = Tree(sent.sent_id, "lex", [], head.token_id, head.word, head.pos,
-                head.preds | {"clt_integ_nv":0, "clt_integ_nvjr":0, "clt_integ_char":0, "clt_count":0})
+                head.preds | {"clt_integ_nv":0, "clt_integ_nvjr":0, "clt_integ_char":0, "clt_count":0}, head.misc)
     clds = [token for token in sent.tokens if token.head == head_id]
     left_clds = [cld for cld in clds if precede(cld.token_id, head_id)]
     right_clds = [cld for cld in clds if precede(head_id, cld.token_id)]
@@ -245,12 +247,13 @@ def calc_clt_stor(tree: Tree) -> Tree:
 def save_clt(trees: list[Tree], path: str) -> None:
     # save CLT costs as a tsv file
     pred_names = terminals(trees[0])[0].preds.keys()
-    text = "sent_id\ttoken_id\tword\t" + "\t".join(pred_names)
+    text = "sent_id\ttoken_id\tword\t" + "\t".join(pred_names) + "\tmisc"
     for tree in trees:
         for t in terminals(tree):
             text += f"\n{t.sent_id}\t{t.token_id}\t{t.word}"
             for pred_name in pred_names:
                 text += f"\t{t.preds[pred_name]}"
+            text += f"\t{t.misc}"
     with open(path, "w") as f:
         f.write(text)
 
