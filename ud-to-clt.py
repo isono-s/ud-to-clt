@@ -45,7 +45,7 @@ def read_ud(path: str) -> list[Sent]:
         sent = Sent(None, [])
         lines = [line.strip() for line in pg.split("\n")]
         for line in lines:
-            m = re.match("# (.*)", line)
+            m = re.match("# sent_id = (.*)", line)
             if m:
                 sent.sent_id = m.group(1)
                 continue
